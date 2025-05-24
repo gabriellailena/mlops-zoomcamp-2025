@@ -1,9 +1,17 @@
 import os
 import pickle
 import click
-
+import time
+from datetime import datetime
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
+
+import mlflow
+
+# Configure MLFlow
+MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+mlflow.set_experiment("nyc-green-taxi-experiment")
 
 
 def load_pickle(filename: str):
@@ -15,19 +23,38 @@ def load_pickle(filename: str):
 @click.option(
     "--data_path",
     default="./output",
-    help="Location where the processed NYC taxi trip data was saved"
+    help="Location where the processed NYC taxi trip data was saved",
 )
 def run_train(data_path: str):
+    # Dynamically generate run name
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_name = f"rf_{timestamp}"
+    with mlflow.start_run(run_name=run_name):
+        print("Starting run:", run_name)
+        mlflow.autolog()
 
-    X_train, y_train = load_pickle(os.path.join(data_path, "train.pkl"))
-    X_val, y_val = load_pickle(os.path.join(data_path, "val.pkl"))
+        # Load datasets
+        X_train, y_train = load_pickle(os.path.join(data_path, "train.pkl"))
+        X_val, y_val = load_pickle(os.path.join(data_path, "val.pkl"))
 
-    rf = RandomForestRegressor(max_depth=10, random_state=0)
-    rf.fit(X_train, y_train)
-    y_pred = rf.predict(X_val)
+        # Start training process
+        start = time.time()
 
-    rmse = mean_squared_error(y_val, y_pred, squared=False)
+        print("Training Random Forest Regressor...")
+        rf = RandomForestRegressor(max_depth=10, random_state=0)
+        rf.fit(X_train, y_train)
+
+        end = time.time()
+        print(f"Training completed in {end - start:.2f} seconds")
+
+        # Make predictions
+        y_pred = rf.predict(X_val)
+
+        rmse = root_mean_squared_error(y_val, y_pred)
+        print(f"RMSE: {rmse:.2f}")
+
+        mlflow.log_metric("validation_rmse", rmse)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_train()

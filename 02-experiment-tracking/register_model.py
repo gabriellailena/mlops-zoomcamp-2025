@@ -2,6 +2,7 @@ import os
 import pickle
 import click
 import mlflow
+from datetime import datetime
 
 from mlflow.entities import ViewType
 from mlflow.tracking import MlflowClient
@@ -26,8 +27,11 @@ def train_and_log_model(data_path, params):
     X_train, y_train = load_pickle(os.path.join(data_path, "train.pkl"))
     X_val, y_val = load_pickle(os.path.join(data_path, "val.pkl"))
     X_test, y_test = load_pickle(os.path.join(data_path, "test.pkl"))
-
-    with mlflow.start_run():
+    
+    # Dynamically generate run name
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    run_name = f"nyc-taxi-random-forest-trial-{timestamp}"
+    with mlflow.start_run(run_name=run_name) as run:
         new_params = {}
         for param in RF_PARAMS:
             new_params[param] = int(params[param])
@@ -71,11 +75,26 @@ def run_register_model(data_path: str, top_n: int):
 
     # Select the model with the lowest test RMSE
     experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
-    # best_run = client.search_runs( ...  )[0]
+    best_run = client.search_runs(
+        experiment_ids=experiment.experiment_id,
+        run_view_type=ViewType.ACTIVE_ONLY,
+        max_results=1,
+        order_by=["metrics.test_rmse ASC"]
+    )[0]
 
     # Register the best model
-    # mlflow.register_model( ... )
+    model_uri = f"runs:/{best_run.info.run_id}/model"
+    model_version = mlflow.register_model(
+        model_uri=model_uri,
+        name="nyc-taxi-random-forest-best-model",
+    )
 
+    # Set the model version alias to "dev"
+    client.set_registered_model_alias(
+        name="nyc-taxi-random-forest-best-model",
+        alias="dev",
+        version=model_version.version
+    )
 
 if __name__ == '__main__':
     run_register_model()

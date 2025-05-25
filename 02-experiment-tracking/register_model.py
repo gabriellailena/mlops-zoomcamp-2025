@@ -64,7 +64,7 @@ def run_register_model(data_path: str, top_n: int):
         experiment_ids=experiment.experiment_id,
         run_view_type=ViewType.ACTIVE_ONLY,
         max_results=top_n,
-        order_by=["metrics.rmse ASC"]
+        order_by=["metrics.validation_rmse ASC"]
     )
     for run in runs:
         train_and_log_model(data_path=data_path, params=run.data.params)

@@ -8,11 +8,7 @@ from sklearn.metrics import root_mean_squared_error
 
 import mlflow
 
-# Configure MLFlow
-MLFLOW_TRACKING_URI = "sqlite:///mlflow.db"
-mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-mlflow.set_experiment("nyc-green-taxi-experiment")
-
+MLFLOW_TRACKING_URI = "http://127.0.0.1:5000"
 
 def load_pickle(filename: str):
     with open(filename, "rb") as f_in:
@@ -26,6 +22,10 @@ def load_pickle(filename: str):
     help="Location where the processed NYC taxi trip data was saved",
 )
 def run_train(data_path: str):
+    # Configure tracking server
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    mlflow.set_experiment("nyc-green-taxi-experiment")
+
     # Dynamically generate run name
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_name = f"rf_{timestamp}"

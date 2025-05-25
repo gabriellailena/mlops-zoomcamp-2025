@@ -34,11 +34,17 @@ def run_optimization(data_path: str, num_trials: int):
     X_val, y_val = load_pickle(os.path.join(data_path, "val.pkl"))
 
     def objective(params):
+        # Here we want to log the parameters and metrics to track the optimization process
+        with mlflow.start_run(run_name="hyperopt-random-forest") as run:
+            mlflow.set_tags({"model": "RandomForestRegressor", "num_trials": num_trials})
+            mlflow.log_params(params)
+            
+            rf = RandomForestRegressor(**params)
+            rf.fit(X_train, y_train)
+            y_pred = rf.predict(X_val)
+            rmse = root_mean_squared_error(y_val, y_pred)
 
-        rf = RandomForestRegressor(**params)
-        rf.fit(X_train, y_train)
-        y_pred = rf.predict(X_val)
-        rmse = root_mean_squared_error(y_val, y_pred)
+            mlflow.log_metric("validation_rmse", rmse)
 
         return {'loss': rmse, 'status': STATUS_OK}
 

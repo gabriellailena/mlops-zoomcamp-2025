@@ -7,7 +7,7 @@ services:
       - .env
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker/mage.dockerfile
     environment:
       USER_CODE_PATH: /home/src/${PROJECT_NAME}
       ENV: ${ENV}
@@ -16,3 +16,12 @@ services:
     volumes:
       - .:/home/src/
     restart: on-failure:5
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: ./docker/mlflow.dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - "${PWD}/mlflow_data:/home/mlflow_data/"

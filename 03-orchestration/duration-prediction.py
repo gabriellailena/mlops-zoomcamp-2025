@@ -12,17 +12,18 @@ from sklearn.metrics import root_mean_squared_error
 
 import mlflow
 
-mlflow.set_tracking_uri("http://localhost:5000")
-mlflow.set_experiment("nyc-taxi-experiment")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
+mlflow.set_experiment("nyc-yellow-taxi-experiment")
 
 models_folder = Path('models')
 models_folder.mkdir(exist_ok=True)
 
 
-
 def read_dataframe(year, month):
-    url = f'https://d37ci6vzurychx.cloudfront.net/trip-data/green_tripdata_{year}-{month:02d}.parquet'
+    url = f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year}-{month:02d}.parquet'
     df = pd.read_parquet(url)
+
+    print(df.columns)
 
     df['duration'] = df.lpep_dropoff_datetime - df.lpep_pickup_datetime
     df.duration = df.duration.apply(lambda td: td.total_seconds() / 60)
@@ -116,6 +117,7 @@ if __name__ == "__main__":
     parser.add_argument('--month', type=int, required=True, help='Month of the data to train on')
     args = parser.parse_args()
 
+    print(f"Training model for year={args.year}, month={args.month}")
     run_id = run(year=args.year, month=args.month)
 
     with open("run_id.txt", "w") as f:

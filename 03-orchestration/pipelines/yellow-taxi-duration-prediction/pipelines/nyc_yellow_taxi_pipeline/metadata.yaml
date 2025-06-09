@@ -1,0 +1,31 @@
+uuid: nyc_yellow_taxi_pipeline
+name: nyc_yellow_taxi_pipeline
+description: NYC Yellow Taxi ML pipeline
+type: python
+version: 1
+blocks:
+  - all_upstream_blocks_executed: true
+    uuid: load_data
+    name: load_data
+    status: not_executed
+    type: data_loader
+    upstream_blocks: []
+    downstream_blocks:
+    - preprocess_data
+  - all_upstream_blocks_executed: true
+    uuid: preprocess_data
+    name: preprocess_data
+    status: not_executed
+    type: transformer
+    upstream_blocks: 
+    - load_data
+    downstream_blocks:
+    - train_linear_regression_model
+  - all_upstream_blocks_executed: true
+    uuid: train_linear_regression_model
+    name: train_linear_regression_model
+    status: not_executed
+    type: custom
+    upstream_blocks: 
+    - preprocess_data
+    downstream_blocks: []

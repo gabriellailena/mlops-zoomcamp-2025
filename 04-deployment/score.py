@@ -2,6 +2,14 @@
 # coding: utf-8
 import pickle
 import pandas as pd
+import argparse
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Score a model with new data')
+    parser.add_argument('--year', type=str, help='Year of the data')
+    parser.add_argument('--month', type=str, help='Month of the data')
+    return parser.parse_args()
 
 
 def load_model(filepath):
@@ -55,10 +63,14 @@ def save_output(df, y_pred, output_file):
     return
 
 def run():
-    # Read data
-    year = 2023
-    month = 3
+    # Input year and month
+    args = parse_args()
+    year = int(args.year)
+    month = int(args.month)
+    if not (1 <= month <= 12):
+        raise ValueError("Month must be between 1 and 12")
 
+    # Read data
     df = read_data(f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year}-{month:02d}.parquet')
 
     # Make predictions
@@ -75,6 +87,9 @@ def run():
     output_file = f'yellow_tripdata_{year:04d}-{month:02d}_predictions.parquet'
     save_output(df, y_pred, output_file)
 
+
+if __name__ == '__main__':
+    run()
 
 
 

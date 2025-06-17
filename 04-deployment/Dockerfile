@@ -11,6 +11,6 @@ COPY ["Pipfile", "Pipfile.lock", "./"]
 RUN pipenv install --system --deploy
 
 # Copy script
-COPY ["score.py", "./"]
-ENTRYPOINT ["python", "score.py"]
+COPY ["predict.py", "./"]
+ENTRYPOINT ["python", "predict.py"]
 CMD ["--year", "2023", "--month", "5"]

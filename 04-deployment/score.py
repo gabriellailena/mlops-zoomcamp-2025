@@ -80,7 +80,11 @@ def run():
     y_pred = predict('model.bin', dicts)
 
     # Checking the standard deviation of predictions
-    print(f'Standard deviation of predictions: {y_pred.std():.2f}')
+    print('Prediction stats:\n')
+    print(f'    Standard deviation: {y_pred.std():.2f}')
+    print(f'    Mean: {y_pred.mean():.2f}')
+    print(f'    Min: {y_pred.min():.2f}')
+    print(f'    Max: {y_pred.max():.2f}')
 
     # Save the ride_id and predictions to a parquet file
     df['ride_id'] = f'{year:04d}/{month:02d}_' + df.index.astype('str')
